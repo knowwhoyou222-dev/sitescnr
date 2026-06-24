@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { margin: 0; background-color: #0f0f0f; color: #fff; font-family: sans-serif; display: flex; }
+        #sidebar { width: 220px; background: #1a1a1a; height: 100vh; padding: 20px; border-right: 1px solid #333; }
+        #main { flex-grow: 1; padding: 40px; }
+        .nav-link { display: block; color: #fff; text-decoration: none; padding: 15px 0; border-bottom: 1px solid #333; }
+        .nav-link:hover { color: #ff0000; }
+        button { background: #ff0000; color: #fff; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .card { background: #141414; border: 1px solid #333; padding: 20px; border-radius: 8px; width: 200px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h2 style="color: #ff0000;">Satan Scanner</h2>
+        <a href="/" class="nav-link">Dashboard</a>
+        <a href="/scans" class="nav-link">Scans</a>
+    </div>
+    <div id="main">
+        <h1>Dashboard</h1>
+        <button onclick="generateKey()">GENERATE KEY</button>
+        <div id="key-display" style="margin: 20px 0; font-size: 20px;"></div>
+        
+        <div class="card">
+            <p>TOTAL SCANS</p>
+            <h2 id="total-scans" style="color: #ff0000;">0</h2>
+        </div>
+    </div>
+    <script>
+        function generateKey() {
+            fetch('/api/generate-key', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('key-display').innerHTML = "Active Key: <span style='color:#ff0000;'>" + data.key + "</span>";
+            });
+        }
+
+        // Αυτό το script ενημερώνει το νούμερο των scans αυτόματα μόλις φορτώσει η σελίδα
+        fetch('/api/scans')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('total-scans').innerText = data.length;
+            })
+            .catch(err => console.error("Error loading scan count:", err));
+    </script>
+</body>
+</html>
