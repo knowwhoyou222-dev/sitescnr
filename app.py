@@ -1,77 +1,57 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for, session
-import uuid
-import os
+from flask import Flask, request, jsonify, render_template, session, redirect, url_for
+import json, os, random
 
 app = Flask(__name__)
 app.secret_key = 'satan_scanner_secret_key'
 
-# Ρυθμίσεις χρηστών
-USERS = {"mrsoza": "12132"}
+KEYS_FILE = "keys.json"
+REPORTS_FILE = "reports.json"
 
-keys = []
-used_keys = []
-scans = []
+def load(file):
+    if not os.path.exists(file): return []
+    with open(file, "r") as f: return json.load(f)
 
-# --- ΑΥΤΟΜΑΤΟΣ ΕΛΕΓΧΟΣ LOGIN ---
+def save(file, data):
+    with open(file, "w") as f: json.dump(data, f, indent=4)
+
 @app.before_request
-def require_login():
-    allowed_routes = ['login', 'static']
-    if request.endpoint not in allowed_routes and 'user' not in session:
+def bypass_api():
+    # Αν το request είναι API, παρακάμπτουμε το login
+    if request.path in ['/activate-key', '/submit-report']:
+        return None
+    # Αλλιώς, αν δεν είσαι logged in, πήγαινε στο login
+    if request.endpoint != 'login' and 'user' not in session and not request.path.startswith('/static'):
         return redirect(url_for('login'))
 
-# --- LOGIN ROUTES ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        if username in USERS and USERS[username] == password:
-            session['user'] = username
-            return redirect(url_for('home'))
-        return "Λάθος στοιχεία!"
+        if request.form.get('password') == "12132": # Password σου
+            session['user'] = "admin"
+            return redirect(url_for('dashboard'))
     return render_template('login.html')
 
-@app.route('/logout')
-def logout():
-    session.pop('user', None)
-    return redirect(url_for('login'))
-
-# --- ΚΥΡΙΕΣ ΣΕΛΙΔΕΣ ---
 @app.route('/')
-def home():
-    return render_template('dashboard.html')
+def dashboard():
+    return render_template('index.html', reports=load(REPORTS_FILE))
 
-@app.route('/scans')
-def scans_page():
-    return render_template('scans.html', scans=scans)
-
-# --- API ROUTES ---
-@app.route('/api/generate-key', methods=['POST'])
-def generate_key():
-    new_key = str(uuid.uuid4())[:8].upper()
-    keys.append(new_key)
-    return jsonify({"key": new_key})
-
-@app.route('/activate-key', methods=['POST'])
+@app.route("/activate-key", methods=["POST"])
 def activate_key():
-    data = request.get_json(silent=True) or {}
-    key = data.get("key")
-    if key in keys and key not in used_keys:
-        used_keys.append(key)
-        return jsonify({"success": True})
+    data = request.json
+    keys = load(KEYS_FILE)
+    for k in keys:
+        if k["key"] == data.get("key") and not k.get("used", False):
+            k["used"] = True
+            save(KEYS_FILE, keys)
+            return jsonify({"success": True})
     return jsonify({"success": False})
 
-@app.route('/scans', methods=['POST'])
+@app.route("/submit-report", methods=["POST"])
 def submit_report():
-    data = request.get_json(silent=True) or {}
-    scans.append(data)
+    reports = load(REPORTS_FILE)
+    reports.append(request.json)
+    save(REPORTS_FILE, reports)
     return jsonify({"success": True})
 
-@app.route('/api/scans')
-def get_scans():
-    return jsonify(scans)
-
-if __name__ == '__main__':
-    # Διόρθωση για το Render (χρήση της θύρας που δίνει το περιβάλλον)
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
