@@ -1,106 +1,23 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body {
-            background: #121212;
-            color: #fff;
-            font-family: sans-serif;
-            display: flex;
-        }
+<table id="scans-table">
+    <thead>
+        <tr><th>Key</th><th>Status</th><th>Date</th><th>Results</th></tr>
+    </thead>
+    <tbody id="data-body"></tbody>
+</table>
 
-        #sidebar {
-            width: 220px;
-            background: #1a1a1a;
-            padding: 20px;
-            height: 100vh;
-            border-right: 1px solid #333;
-        }
-
-        .nav-link {
-            display: block;
-            color: #aaa;
-            text-decoration: none;
-            padding: 10px 0;
-        }
-
-        table {
-            width: 90%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background: #1a1a1a;
-        }
-
-        th {
-            text-align: left;
-            padding: 15px;
-            border-bottom: 1px solid #333;
-            color: #888;
-        }
-
-        td {
-            padding: 15px;
-            border-bottom: 1px solid #222;
-            vertical-align: top;
-        }
-    </style>
-</head>
-
-<body>
-
-    <div id="sidebar">
-        <h2>Satan Scanner</h2>
-        <a href="/" class="nav-link">Dashboard</a>
-        <a href="/scans" class="nav-link" style="color: #fff;">Scans</a>
-    </div>
-
-    <div style="padding: 40px; width: 100%;">
-        <h1>Scans</h1>
-
-        <table>
-            <tr>
-                <th>PIN</th>
-                <th>NAME</th>
-                <th>GAME</th>
-                <th>STATUS</th>
-                <th>DATE</th>
-                <th>RESULTS</th>
-            </tr>
-
-            {% if scans and scans|length > 0 %}
-
-                {% for scan in scans %}
-                <tr>
-                    <td>{{ scan.pin }}</td>
-                    <td>{{ scan.user }}</td>
-                    <td>FiveM</td>
-                    <td>{{ scan.status }}</td>
-                    <td>{{ scan.date }}</td>
-
-                    <td>
-                        {% if scan.results %}
-                            {% for r in scan.results %}
-                                <div style="color:#ff5555;">{{ r }}</div>
-                            {% endfor %}
-                        {% else %}
-                            <span style="color:#777;">-</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-
-            {% else %}
-
-                <tr>
-                    <td colspan="6" style="text-align:center; padding:50px;">
-                        No scans yet. Run scanner on a suspect.
-                    </td>
-                </tr>
-
-            {% endif %}
-
-        </table>
-    </div>
-
-</body>
-</html>
+<script>
+    fetch('/get-reports')
+    .then(res => res.json())
+    .then(data => {
+        const tbody = document.getElementById('data-body');
+        tbody.innerHTML = ""; // Καθαρισμός
+        data.forEach(item => {
+            tbody.innerHTML += `<tr>
+                <td>${item.key}</td>
+                <td>${item.status}</td>
+                <td>${item.date}</td>
+                <td>${item.results ? item.results.join(", ") : "None"}</td>
+            </tr>`;
+        });
+    });
+</script>
