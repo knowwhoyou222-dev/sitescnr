@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template, session, redirect, u
 import json, os
 
 app = Flask(__name__)
-app.secret_key = 'ogamiaasosoza'
+app.secret_key = 'satan_scanner_secret_key'
 
 KEYS_FILE = "keys.json"
 REPORTS_FILE = "reports.json"
