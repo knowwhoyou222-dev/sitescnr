@@ -1,23 +1,58 @@
-<table id="scans-table">
-    <thead>
-        <tr><th>Key</th><th>Status</th><th>Date</th><th>Results</th></tr>
-    </thead>
-    <tbody id="data-body"></tbody>
-</table>
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <title>Satan Scanner | Scans</title>
+    <style>
+        :root { --main-red: #ff0000; --bg-dark: #0a0a0a; --panel-dark: #141414; }
+        body { margin: 0; background-color: var(--bg-dark); color: #e0e0e0; font-family: 'Segoe UI', sans-serif; display: flex; }
+        #sidebar { width: 220px; background: #0f0f0f; height: 100vh; padding: 30px; border-right: 2px solid #222; }
+        #main { flex-grow: 1; padding: 40px; }
+        .nav-link { display: block; color: #888; text-decoration: none; padding: 12px 0; font-weight: 600; }
+        .nav-link:hover { color: var(--main-red); }
+        
+        table { width: 100%; border-collapse: collapse; background: var(--panel-dark); border-radius: 8px; overflow: hidden; margin-top: 20px; }
+        th { background: #1a1a1a; padding: 15px; color: var(--main-red); text-transform: uppercase; font-size: 12px; text-align: left; }
+        td { padding: 15px; border-bottom: 1px solid #222; }
+        tr:hover { background: #1a1a1a; }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h2 style="color: var(--main-red);">Satan Scanner</h2>
+        <a href="/" class="nav-link">Dashboard</a>
+        <a href="/scans" class="nav-link" style="color: var(--main-red);">Scans</a>
+    </div>
+    <div id="main">
+        <h1>Scan History</h1>
+        <table>
+            <thead>
+                <tr><th>Key</th><th>Status</th><th>Date</th><th>Results</th></tr>
+            </thead>
+            <tbody id="scans-table">
+                </tbody>
+        </table>
+    </div>
 
-<script>
-    fetch('/get-reports')
-    .then(res => res.json())
-    .then(data => {
-        const tbody = document.getElementById('data-body');
-        tbody.innerHTML = ""; // Καθαρισμός
-        data.forEach(item => {
-            tbody.innerHTML += `<tr>
-                <td>${item.key}</td>
-                <td>${item.status}</td>
-                <td>${item.date}</td>
-                <td>${item.results ? item.results.join(", ") : "None"}</td>
-            </tr>`;
-        });
-    });
-</script>
+    <script>
+        fetch('/get-reports')
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.getElementById('scans-table');
+            if(data.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='4'>No data found.</td></tr>";
+            } else {
+                data.forEach(scan => {
+                    tbody.innerHTML += `<tr>
+                        <td>${scan.key || 'N/A'}</td>
+                        <td>${scan.status || 'N/A'}</td>
+                        <td>${scan.date || 'N/A'}</td>
+                        <td>${scan.results ? scan.results.join(", ") : "None"}</td>
+                    </tr>`;
+                });
+            }
+        })
+        .catch(err => console.error("Error fetching scans:", err));
+    </script>
+</body>
+</html>
