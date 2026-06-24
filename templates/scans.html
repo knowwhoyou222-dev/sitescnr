@@ -7,7 +7,7 @@
         :root { --main-red: #ff0000; --bg-dark: #0a0a0a; --panel-dark: #141414; }
         body { margin: 0; background-color: var(--bg-dark); color: #e0e0e0; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; min-height: 100vh; }
         .wrapper { display: flex; flex-grow: 1; }
-        #sidebar { width: 220px; background: #0f0f0f; padding: 30px; border-right: 2px solid #222; }
+        #sidebar { width: 220px; background: #0f0f0f; height: 100vh; padding: 30px; border-right: 2px solid #222; }
         #main { flex-grow: 1; padding: 40px; }
         .nav-link { display: block; color: #888; text-decoration: none; padding: 12px 0; font-weight: 600; }
         .nav-link:hover { color: var(--main-red); }
@@ -16,8 +16,7 @@
         th { background: #1a1a1a; padding: 15px; color: var(--main-red); text-transform: uppercase; font-size: 12px; text-align: left; }
         td { padding: 15px; border-bottom: 1px solid #222; vertical-align: top; }
         tr:hover { background: #1a1a1a; }
-        .show-more-btn { color: var(--main-red); background: none; border: none; cursor: pointer; font-weight: bold; text-decoration: underline; margin-top: 5px; display: block; }
-        
+        .show-more-btn { color: var(--main-red); background: none; border: none; cursor: pointer; font-weight: bold; text-decoration: underline; margin-top: 5px; }
         footer { text-align: center; padding: 20px; color: #444; font-size: 14px; border-top: 1px solid #222; }
     </style>
 </head>
@@ -52,16 +51,16 @@
                 data.forEach((scan, index) => {
                     let resultsHTML = "None";
                     if (scan.results && scan.results.length > 0) {
-                        const preview = scan.results.slice(0, 3).join("\n");
                         const allFiles = scan.results.join("\n");
+                        const preview = scan.results.slice(0, 3).join("<br>");
                         
                         if (scan.results.length > 3) {
-                            resultsHTML = `<div id="res-${index}" style="white-space: pre-wrap;">${preview}
+                            resultsHTML = `<div id="res-${index}">${preview}<br>
                             <button class="show-more-btn" onclick="showAll('res-${index}', \`${allFiles.replace(/`/g, '\\`')}\`)">
                                 Show More...
                             </button></div>`;
                         } else {
-                            resultsHTML = `<div style="white-space: pre-wrap;">${preview}</div>`;
+                            resultsHTML = preview;
                         }
                     }
 
