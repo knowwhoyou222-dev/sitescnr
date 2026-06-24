@@ -39,7 +39,7 @@ def logout():
 # --- ΚΥΡΙΕΣ ΣΕΛΙΔΕΣ ---
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('dashboard.html')
 
 @app.route('/scans')
 def scans_page():
