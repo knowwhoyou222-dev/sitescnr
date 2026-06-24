@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template, session, redirect, u
 import json, os
 
 app = Flask(__name__)
-app.secret_key = 'satan_scanner_secret_key'
+app.secret_key = 'ogamiaasosoza'
 
 KEYS_FILE = "keys.json"
 REPORTS_FILE = "reports.json"
@@ -18,11 +18,10 @@ def save(file, data):
 
 @app.before_request
 def bypass_api():
-    # Λίστα με routes που επιτρέπονται χωρίς login
-    allowed = ['/activate-key', '/submit-report', '/login']
+    # Προσθέσαμε το /scans εδώ για να μην τρώει redirect στο login
+    allowed = ['/activate-key', '/submit-report', '/scans', '/login']
     if request.path in allowed or request.path.startswith('/static'):
         return None
-    # Έλεγχος αν ο χρήστης είναι logged in
     if 'user' not in session:
         return redirect(url_for('login'))
 
@@ -37,6 +36,17 @@ def login():
 @app.route('/')
 def dashboard():
     return render_template('index.html', reports=load(REPORTS_FILE))
+
+# Διορθωμένο route για το /scans
+@app.route("/scans", methods=["GET", "POST"])
+def scans_page():
+    if request.method == "POST":
+        data = request.get_json()
+        reports = load(REPORTS_FILE)
+        reports.append(data)
+        save(REPORTS_FILE, reports)
+        return jsonify({"success": True})
+    return render_template('scans.html', reports=load(REPORTS_FILE))
 
 @app.route("/activate-key", methods=["POST"])
 def activate_key():
