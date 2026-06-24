@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template, session, redirect, url_for
-import json, os, random
+import json, os
 
 app = Flask(__name__)
 app.secret_key = 'satan_scanner_secret_key'
@@ -9,24 +9,27 @@ REPORTS_FILE = "reports.json"
 
 def load(file):
     if not os.path.exists(file): return []
-    with open(file, "r") as f: return json.load(f)
+    try:
+        with open(file, "r") as f: return json.load(f)
+    except: return []
 
 def save(file, data):
     with open(file, "w") as f: json.dump(data, f, indent=4)
 
 @app.before_request
 def bypass_api():
-    # Αν το request είναι API, παρακάμπτουμε το login
-    if request.path in ['/activate-key', '/submit-report']:
+    # Λίστα με routes που επιτρέπονται χωρίς login
+    allowed = ['/activate-key', '/submit-report', '/login']
+    if request.path in allowed or request.path.startswith('/static'):
         return None
-    # Αλλιώς, αν δεν είσαι logged in, πήγαινε στο login
-    if request.endpoint != 'login' and 'user' not in session and not request.path.startswith('/static'):
+    # Έλεγχος αν ο χρήστης είναι logged in
+    if 'user' not in session:
         return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        if request.form.get('password') == "12132": # Password σου
+        if request.form.get('password') == "12132":
             session['user'] = "admin"
             return redirect(url_for('dashboard'))
     return render_template('login.html')
@@ -37,10 +40,10 @@ def dashboard():
 
 @app.route("/activate-key", methods=["POST"])
 def activate_key():
-    data = request.json
+    data = request.get_json()
     keys = load(KEYS_FILE)
     for k in keys:
-        if k["key"] == data.get("key") and not k.get("used", False):
+        if k.get("key") == data.get("key") and not k.get("used", False):
             k["used"] = True
             save(KEYS_FILE, keys)
             return jsonify({"success": True})
@@ -48,8 +51,9 @@ def activate_key():
 
 @app.route("/submit-report", methods=["POST"])
 def submit_report():
+    data = request.get_json()
     reports = load(REPORTS_FILE)
-    reports.append(request.json)
+    reports.append(data)
     save(REPORTS_FILE, reports)
     return jsonify({"success": True})
 
