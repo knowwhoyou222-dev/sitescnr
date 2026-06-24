@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template, session, redirect, url_for
-import json, os
+import json, os, random
 
 app = Flask(__name__)
 app.secret_key = 'satan_scanner_secret_key'
@@ -18,8 +18,8 @@ def save(file, data):
 
 @app.before_request
 def bypass_api():
-    # Προσθέσαμε το /scans εδώ για να μην τρώει redirect στο login
-    allowed = ['/activate-key', '/submit-report', '/scans', '/login']
+    # Προστέθηκε το /create-key στη λίστα
+    allowed = ['/activate-key', '/submit-report', '/scans', '/login', '/create-key']
     if request.path in allowed or request.path.startswith('/static'):
         return None
     if 'user' not in session:
@@ -37,7 +37,14 @@ def login():
 def dashboard():
     return render_template('index.html', reports=load(REPORTS_FILE))
 
-# Διορθωμένο route για το /scans
+@app.route("/create-key", methods=["POST"])
+def create_key():
+    keys = load(KEYS_FILE)
+    new_key = "SATAN-" + str(random.randint(1000,9999)) + "-" + str(random.randint(1000,9999))
+    keys.append({"key": new_key, "used": False})
+    save(KEYS_FILE, keys)
+    return jsonify({"success": True, "key": new_key})
+
 @app.route("/scans", methods=["GET", "POST"])
 def scans_page():
     if request.method == "POST":
