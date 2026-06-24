@@ -1,5 +1,6 @@
 from flask import Flask, render_template, jsonify, request, redirect, url_for, session
 import uuid
+import os
 
 app = Flask(__name__)
 app.secret_key = 'satan_scanner_secret_key'
@@ -71,4 +72,6 @@ def get_scans():
     return jsonify(scans)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Διόρθωση για το Render (χρήση της θύρας που δίνει το περιβάλλον)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
