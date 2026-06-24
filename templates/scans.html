@@ -5,8 +5,9 @@
     <title>Satan Scanner | Scans</title>
     <style>
         :root { --main-red: #ff0000; --bg-dark: #0a0a0a; --panel-dark: #141414; }
-        body { margin: 0; background-color: var(--bg-dark); color: #e0e0e0; font-family: 'Segoe UI', sans-serif; display: flex; }
-        #sidebar { width: 220px; background: #0f0f0f; height: 100vh; padding: 30px; border-right: 2px solid #222; }
+        body { margin: 0; background-color: var(--bg-dark); color: #e0e0e0; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; min-height: 100vh; }
+        .wrapper { display: flex; flex-grow: 1; }
+        #sidebar { width: 220px; background: #0f0f0f; padding: 30px; border-right: 2px solid #222; }
         #main { flex-grow: 1; padding: 40px; }
         .nav-link { display: block; color: #888; text-decoration: none; padding: 12px 0; font-weight: 600; }
         .nav-link:hover { color: var(--main-red); }
@@ -15,25 +16,30 @@
         th { background: #1a1a1a; padding: 15px; color: var(--main-red); text-transform: uppercase; font-size: 12px; text-align: left; }
         td { padding: 15px; border-bottom: 1px solid #222; vertical-align: top; }
         tr:hover { background: #1a1a1a; }
-        .show-more-btn { color: var(--main-red); background: none; border: none; cursor: pointer; font-weight: bold; text-decoration: underline; margin-top: 5px; }
+        .show-more-btn { color: var(--main-red); background: none; border: none; cursor: pointer; font-weight: bold; text-decoration: underline; margin-top: 5px; display: block; }
+        
+        footer { text-align: center; padding: 20px; color: #444; font-size: 14px; border-top: 1px solid #222; }
     </style>
 </head>
 <body>
-    <div id="sidebar">
-        <h2 style="color: var(--main-red);">Satan Scanner</h2>
-        <a href="/" class="nav-link">Dashboard</a>
-        <a href="/scans" class="nav-link" style="color: var(--main-red);">Scans</a>
-    </div>
-    <div id="main">
-        <h1>Scan History</h1>
-        <table>
-            <thead>
-                <tr><th>Key</th><th>Status</th><th>Date</th><th>Results</th></tr>
-            </thead>
-            <tbody id="scans-table">
+    <div class="wrapper">
+        <div id="sidebar">
+            <h2 style="color: var(--main-red);">Satan Scanner</h2>
+            <a href="/" class="nav-link">Dashboard</a>
+            <a href="/scans" class="nav-link" style="color: var(--main-red);">Scans</a>
+        </div>
+        <div id="main">
+            <h1>Scan History</h1>
+            <table>
+                <thead>
+                    <tr><th>Key</th><th>Status</th><th>Date</th><th>Results</th></tr>
+                </thead>
+                <tbody id="scans-table">
                 </tbody>
-        </table>
+            </table>
+        </div>
     </div>
+    <footer>MrSoza X Don Dada | Satan Scanner</footer>
 
     <script>
         fetch('/get-reports')
@@ -46,16 +52,16 @@
                 data.forEach((scan, index) => {
                     let resultsHTML = "None";
                     if (scan.results && scan.results.length > 0) {
-                        const allFiles = scan.results.join("<br>");
-                        const preview = scan.results.slice(0, 3).join("<br>");
+                        const preview = scan.results.slice(0, 3).join("\n");
+                        const allFiles = scan.results.join("\n");
                         
                         if (scan.results.length > 3) {
-                            resultsHTML = `<div id="res-${index}">${preview}<br>
-                            <button class="show-more-btn" onclick="showAll('res-${index}', \`${allFiles.replace(/'/g, "\\'")}\`)">
+                            resultsHTML = `<div id="res-${index}" style="white-space: pre-wrap;">${preview}
+                            <button class="show-more-btn" onclick="showAll('res-${index}', \`${allFiles.replace(/`/g, '\\`')}\`)">
                                 Show More...
                             </button></div>`;
                         } else {
-                            resultsHTML = preview;
+                            resultsHTML = `<div style="white-space: pre-wrap;">${preview}</div>`;
                         }
                     }
 
@@ -71,7 +77,9 @@
         .catch(err => console.error("Error fetching scans:", err));
 
         function showAll(id, fullText) {
-            document.getElementById(id).innerHTML = fullText;
+            const el = document.getElementById(id);
+            el.textContent = fullText;
+            el.style.whiteSpace = "pre-wrap";
         }
     </script>
 </body>
