@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template, session, redirect, url_for
-import json, os, random
+import json, os, random, datetime
 
 app = Flask(__name__)
 app.secret_key = 'satan_scanner_secret_key'
@@ -18,11 +18,11 @@ def save(file, data):
 
 @app.before_request
 def bypass_api():
-    # Προστέθηκε το /create-key στη λίστα
-    allowed = ['/activate-key', '/submit-report', '/scans', '/login', '/create-key']
+    # Λίστα με όλα τα API endpoints που δεν χρειάζονται login
+    allowed = ['/activate-key', '/submit-report', '/create-key', '/get-reports', '/login']
     if request.path in allowed or request.path.startswith('/static'):
         return None
-    if 'user' not in session:
+    if 'user' not in session and request.endpoint != 'login':
         return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -35,25 +35,37 @@ def login():
 
 @app.route('/')
 def dashboard():
-    return render_template('index.html', reports=load(REPORTS_FILE))
+    return render_template('index.html')
+
+@app.route("/scans")
+def scans_page():
+    return render_template('scans.html')
+
+# --- API ENDPOINTS (ΟΧΙ HTML) ---
+
+@app.route("/get-reports", methods=["GET"])
+def get_reports():
+    return jsonify(load(REPORTS_FILE))
 
 @app.route("/create-key", methods=["POST"])
 def create_key():
     keys = load(KEYS_FILE)
-    new_key = "SATAN-" + str(random.randint(1000,9999)) + "-" + str(random.randint(1000,9999))
+    new_key = f"SATAN-{random.randint(1000,9999)}-{random.randint(1000,9999)}"
     keys.append({"key": new_key, "used": False})
     save(KEYS_FILE, keys)
     return jsonify({"success": True, "key": new_key})
 
-@app.route("/scans", methods=["GET", "POST"])
-def scans_page():
-    if request.method == "POST":
-        data = request.get_json()
-        reports = load(REPORTS_FILE)
-        reports.append(data)
-        save(REPORTS_FILE, reports)
-        return jsonify({"success": True})
-    return render_template('scans.html', reports=load(REPORTS_FILE))
+@app.route("/submit-report", methods=["POST"])
+def submit_report():
+    data = request.get_json()
+    # Προσθήκη ημερομηνίας αν δεν υπάρχει
+    if "date" not in data:
+        data["date"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    
+    reports = load(REPORTS_FILE)
+    reports.append(data)
+    save(REPORTS_FILE, reports)
+    return jsonify({"success": True})
 
 @app.route("/activate-key", methods=["POST"])
 def activate_key():
@@ -65,14 +77,6 @@ def activate_key():
             save(KEYS_FILE, keys)
             return jsonify({"success": True})
     return jsonify({"success": False})
-
-@app.route("/submit-report", methods=["POST"])
-def submit_report():
-    data = request.get_json()
-    reports = load(REPORTS_FILE)
-    reports.append(data)
-    save(REPORTS_FILE, reports)
-    return jsonify({"success": True})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
