@@ -30,15 +30,21 @@
     </div>
     <script>
         function generateKey() {
-            fetch('/api/generate-key', { method: 'POST' })
+            // Διορθωμένο URL: /create-key (χωρίς το /api/)
+            fetch('/create-key', { method: 'POST' })
             .then(res => res.json())
             .then(data => {
-                document.getElementById('key-display').innerHTML = "Active Key: <span style='color:#ff0000;'>" + data.key + "</span>";
-            });
+                if(data.success) {
+                    document.getElementById('key-display').innerHTML = "Active Key: <span style='color:#ff0000;'>" + data.key + "</span>";
+                } else {
+                    alert("Error generating key");
+                }
+            })
+            .catch(err => console.error("Error:", err));
         }
 
-        // Αυτό το script ενημερώνει το νούμερο των scans αυτόματα μόλις φορτώσει η σελίδα
-        fetch('/api/scans')
+        // Διορθωμένο URL: /scans (χωρίς το /api/)
+        fetch('/scans')
             .then(res => res.json())
             .then(data => {
                 document.getElementById('total-scans').innerText = data.length;
