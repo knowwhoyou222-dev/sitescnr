@@ -8,7 +8,7 @@ app = Flask(__name__)
 app.secret_key = 'satan_scanner_secret_key'
 
 # Σύνδεση με τη MongoDB
-MONGO_URI = "mongodb+srv://knowwhoyou222_db_user:GwjVFikrNWFJYsKo@satanbase.pbyoxk0.mongodb.net/?retryWrites=true&w=majority"
+MONGO_URI = "mongodb+srv://knowwhoyou222_db_user:GwjVFikrNWFJYsKo@satanbase.pbyoxk0.mongodb.net/satanbase?retryWrites=true&w=majority&tls=true&tlsAllowInvalidCertificates=true"
 client = MongoClient(MONGO_URI)
 db = client['satanbase']
 reports_collection = db['reports']
