@@ -3,16 +3,37 @@ from pymongo import MongoClient
 import os
 import random
 import datetime
+import requests
 
 app = Flask(__name__)
 app.secret_key = 'satan_scanner_secret_key'
 
-# Σύνδεση με τη MongoDB
+# --- ΡΥΘΜΙΣΕΙΣ ---
+DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1519786106294505582/cttsxposw77wOfM2lAvypxVDZWklVBicqaJGcWVfZChdN9XKJH_uSGEimsUcS_xfmwBp" # ΒΑΛΕ ΤΟ URL ΕΔΩ
 MONGO_URI = "mongodb+srv://knowwhoyou222_db_user:GwjVFikrNWFJYsKo@satanbase.pbyoxk0.mongodb.net/satanbase?retryWrites=true&w=majority&tls=true&tlsAllowInvalidCertificates=true"
+
+# Σύνδεση με τη MongoDB
 client = MongoClient(MONGO_URI)
 db = client['satanbase']
 reports_collection = db['reports']
 keys_collection = db['keys']
+
+# Συνάρτηση για το Discord
+def send_to_discord(data):
+    embed = {
+        "title": "🔥 Satan Scanner | New Scan",
+        "color": 16711680, # Κόκκινο
+        "fields": [
+            {"name": "Key", "value": data.get("key", "N/A"), "inline": True},
+            {"name": "Date", "value": data.get("date", "N/A"), "inline": True},
+            {"name": "Status", "value": data.get("status", "N/A"), "inline": False},
+            {"name": "Findings", "value": str(data.get("results", "None"))[:1024], "inline": False}
+        ]
+    }
+    try:
+        requests.post(DISCORD_WEBHOOK_URL, json={"embeds": [embed]})
+    except Exception as e:
+        print("Discord error:", e)
 
 @app.before_request
 def bypass_api():
@@ -60,7 +81,12 @@ def submit_report():
     data = request.get_json()
     if "date" not in data:
         data["date"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    
+    # 1. Αποθήκευση στη βάση
     reports_collection.insert_one(data)
+    # 2. Αποστολή στο Discord
+    send_to_discord(data)
+    
     return jsonify({"success": True})
 
 @app.route("/activate-key", methods=["POST"])
