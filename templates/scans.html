@@ -48,19 +48,26 @@
             if(data.length === 0) {
                 tbody.innerHTML = "<tr><td colspan='4'>No data found.</td></tr>";
             } else {
+                tbody.innerHTML = "";
                 data.forEach((scan, index) => {
+                    // Διόρθωση: Μετατροπή σε πίνακα αν έρχεται ως string από τη βάση
+                    let results = scan.results;
+                    if (typeof results === 'string') {
+                        results = results.split('\n'); 
+                    }
+                    
                     let resultsHTML = "None";
-                    if (scan.results && scan.results.length > 0) {
-                        const allFiles = scan.results.join("\n");
-                        const preview = scan.results.slice(0, 3).join("<br>");
+                    if (results && results.length > 0) {
+                        const preview = results.slice(0, 3).join("<br>");
+                        const allFiles = results.join("\n");
                         
-                        if (scan.results.length > 3) {
+                        if (results.length > 3) {
                             resultsHTML = `<div id="res-${index}">${preview}<br>
                             <button class="show-more-btn" onclick="showAll('res-${index}', \`${allFiles.replace(/`/g, '\\`')}\`)">
                                 Show More...
                             </button></div>`;
                         } else {
-                            resultsHTML = preview;
+                            resultsHTML = results.join("<br>");
                         }
                     }
 
