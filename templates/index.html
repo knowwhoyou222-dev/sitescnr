@@ -2,6 +2,7 @@
 <html lang="el">
 <head>
     <meta charset="UTF-8">
+    <title>Satan Scanner | Dashboard</title>
     <style>
         body { margin: 0; background-color: #0f0f0f; color: #fff; font-family: sans-serif; display: flex; }
         #sidebar { width: 220px; background: #1a1a1a; height: 100vh; padding: 20px; border-right: 1px solid #333; }
@@ -25,12 +26,13 @@
         
         <div class="card">
             <p>TOTAL SCANS</p>
-            <h2 id="total-scans" style="color: #ff0000;">0</h2>
+            <h2 id="total-scans" style="color: #ff0000;">Loading...</h2>
         </div>
     </div>
+
     <script>
+        // Λειτουργία δημιουργίας κλειδιού
         function generateKey() {
-            // Διορθωμένο URL: /create-key (χωρίς το /api/)
             fetch('/create-key', { method: 'POST' })
             .then(res => res.json())
             .then(data => {
@@ -43,13 +45,17 @@
             .catch(err => console.error("Error:", err));
         }
 
-        // Διορθωμένο URL: /scans (χωρίς το /api/)
-        fetch('/scans')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('total-scans').innerText = data.length;
-            })
-            .catch(err => console.error("Error loading scan count:", err));
+        // Λειτουργία μέτρησης scans από τη MongoDB
+        fetch('/get-scan-count')
+        .then(res => res.json())
+        .then(data => {
+            // Το νέο endpoint επιστρέφει αντικείμενο με το πεδίο "count"
+            document.getElementById('total-scans').innerText = data.count;
+        })
+        .catch(err => {
+            console.error("Error loading scan count:", err);
+            document.getElementById('total-scans').innerText = "0";
+        });
     </script>
 </body>
 </html>
